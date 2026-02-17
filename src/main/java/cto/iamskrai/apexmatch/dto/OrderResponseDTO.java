@@ -1,4 +1,4 @@
-package cto.iamskrai.apexmatch;
+package cto.iamskrai.apexmatch.dto;
 
 public class OrderResponseDTO {
 

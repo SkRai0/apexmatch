@@ -1,17 +1,22 @@
 package cto.iamskrai.apexmatch.model;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+@Entity
+@Table(name = "orders")
 public class Order {
-    @Min(1)
+
+    @Id
     private Integer id;
-    @Min(1)
     private Integer price;
-    @Min(1)
     private Integer qty;
-    @NotNull
+
+    @Enumerated(EnumType.STRING)
     private OrderType type;
+
+    public Order(){}
 
     public Order(Integer id, Integer price, Integer qty, OrderType type) {
         this.id = id;

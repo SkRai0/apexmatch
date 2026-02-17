@@ -19,6 +19,18 @@ public class OrderBook {
     TreeMap<Integer, Queue<Order>> sellOrderBook = new TreeMap<>();
     List<Trade> tradeList = new ArrayList<>();
 
+    public TreeMap<Integer, Queue<Order>> getBuyOrderBook() {
+        return buyOrderBook;
+    }
+
+    public TreeMap<Integer, Queue<Order>> getSellOrderBook() {
+        return sellOrderBook;
+    }
+
+    public List<Trade> getTradeList() {
+        return tradeList;
+    }
+
     public void addBuyOrder(Order order){
         int price = order.getPrice();
         buyOrderBook.computeIfAbsent(price, k->new LinkedList<>())

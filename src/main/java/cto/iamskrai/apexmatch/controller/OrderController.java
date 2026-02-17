@@ -1,13 +1,12 @@
 package cto.iamskrai.apexmatch.controller;
 
-import cto.iamskrai.apexmatch.OrderResponseDTO;
+import cto.iamskrai.apexmatch.dto.OrderBookResponseDTO;
+import cto.iamskrai.apexmatch.dto.OrderRequestDTO;
+import cto.iamskrai.apexmatch.dto.OrderResponseDTO;
 import cto.iamskrai.apexmatch.model.Order;
 import cto.iamskrai.apexmatch.service.MatchingService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/order")
@@ -20,9 +19,22 @@ public class OrderController {
     }
 
     @PostMapping
-    public OrderResponseDTO addOrderController(@Valid @RequestBody Order order){
+    public OrderResponseDTO addOrderController(@Valid @RequestBody OrderRequestDTO request){
+
+        Order order = new Order(
+                request.getId(),
+                request.getPrice(),
+                request.getQty(),
+                request.getType()
+        );
+
         matchingService.addOrder(order);
         return new OrderResponseDTO(order.getId(), "Accepted");
+    }
+
+    @GetMapping("/book")
+    public OrderBookResponseDTO getOrderBook(){
+        return matchingService.getOrderBookSnapshot();
     }
 
 }
