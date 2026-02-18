@@ -1,8 +1,6 @@
 package cto.iamskrai.apexmatch.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "orders")

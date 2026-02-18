@@ -3,12 +3,13 @@ package cto.iamskrai.apexmatch.service;
 import cto.iamskrai.apexmatch.dto.OrderBookResponseDTO;
 import cto.iamskrai.apexmatch.engine.OrderBook;
 import cto.iamskrai.apexmatch.model.Order;
+import cto.iamskrai.apexmatch.model.Trade;
 import cto.iamskrai.apexmatch.repository.OrderRepository;
 import cto.iamskrai.apexmatch.repository.TradeRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 @Service
@@ -24,14 +25,12 @@ public class MatchingService {
         this.tradeRepository = tradeRepository;
     }
 
+    @Transactional
     public void addOrder(Order order){
         orderRepository.save(order);
         orderBook.addOrder(order);
-        orderBook.getTradeList().forEach(tradeRepository::save);
-    }
-
-    public OrderBook getOrderBook(){
-        return orderBook;
+        List<Trade> newTrades = orderBook.drainTrades();
+        newTrades.forEach(tradeRepository::save);
     }
 
     public OrderBookResponseDTO getOrderBookSnapshot() {

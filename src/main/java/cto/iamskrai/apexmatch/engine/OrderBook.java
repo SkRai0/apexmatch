@@ -131,10 +131,10 @@ public class OrderBook {
         }
     }
 
-    public void printTrades(){
-        for(Trade trade: tradeList){
-            System.out.println(trade);
-        }
+    public List<Trade> drainTrades(){
+        List<Trade> currentTrades = new ArrayList<>(tradeList);
+        tradeList.clear();
+        return currentTrades;
     }
 
 }
