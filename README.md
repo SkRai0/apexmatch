@@ -10,15 +10,6 @@ Lightweight Spring Boot order-matching service with a REST API for submitting li
 - H2 in-memory database
 - Maven
 
-## Current Project Status
-
-The codebase contains the full matching domain flow (controller -> service -> queue -> order book), but the application context currently fails to start because `OrderQueue` is not registered as a Spring bean while `MatchingService` requires it via constructor injection.
-
-Observed from test run:
-
-- `mvn test` fails at `ApexmatchApplicationTests.contextLoads`
-- Root cause: `No qualifying bean of type 'cto.iamskrai.apexmatch.engine.OrderQueue' available`
-
 ## API
 
 Base URL: `http://localhost:8080`
