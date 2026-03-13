@@ -27,7 +27,7 @@ public class OrderController {
                 request.getQty(),
                 request.getType()
         );
-
+        System.out.println("Order received by thread: " + Thread.currentThread().getName());
         matchingService.addOrder(order);
         return new OrderResponseDTO(order.getId(), "Accepted");
     }

@@ -1,8 +1,6 @@
 package cto.iamskrai.apexmatch.dto;
 
 import cto.iamskrai.apexmatch.model.OrderType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
