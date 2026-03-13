@@ -110,16 +110,6 @@ Configured in `src/main/resources/application.properties`:
 - Password: *(empty)*
 - H2 console: `http://localhost:8080/h2-console`
 
-## Tests
-
-Run:
-
-```bash
-mvn test
-```
-
-Current result: fails due to missing Spring bean wiring for `OrderQueue`.
-
 ## Project Layout
 
 - `src/main/java/.../controller` - REST controllers
