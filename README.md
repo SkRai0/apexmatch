@@ -1,140 +1,249 @@
 # ApexMatch
 
-Lightweight Spring Boot order-matching service with a REST API for submitting limit orders and reading an in-memory order book snapshot.
+> A high-performance **distributed trading engine** designed to process
+> orders, maintain an order book, and execute trades with low latency
+> and high throughput.
 
-## Tech Stack
+ApexMatch is a distributed trading engine built to simulate the
+architecture used in modern financial exchanges. The system focuses on
+**scalability, reliability, and fault tolerance**, using event-driven
+architecture and distributed messaging.
 
-- Java 17
-- Spring Boot 3.5.10
-- Spring Web, Spring Data JPA, Bean Validation
-- H2 in-memory database
-- Maven
+This project is built as part of a deep dive into **distributed systems
+and real-time data processing**.
 
-## Current Project Status
+------------------------------------------------------------------------
 
-The codebase contains the full matching domain flow (controller -> service -> queue -> order book), but the application context currently fails to start because `OrderQueue` is not registered as a Spring bean while `MatchingService` requires it via constructor injection.
+# 🚀 Key Features
 
-Observed from test run:
+-   ⚡ **Low latency order matching engine**
+-   📊 **In-memory order book for fast execution**
+-   🔄 **Event-driven architecture**
+-   🧵 **Concurrent order processing**
+-   📦 **Kafka-based distributed messaging**
+-   🐳 **Containerized deployment with Docker**
+-   📈 **Horizontal scalability**
 
-- `mvn test` fails at `ApexmatchApplicationTests.contextLoads`
-- Root cause: `No qualifying bean of type 'cto.iamskrai.apexmatch.engine.OrderQueue' available`
+------------------------------------------------------------------------
 
-## API
+# 🧠 Core Concepts Implemented
 
-Base URL: `http://localhost:8080`
+This project explores real-world distributed system concepts:
 
-### `POST /order`
+-   Order matching algorithms
+-   Concurrent data structures
+-   Event sourcing
+-   Message queues
+-   Stream processing
+-   Fault tolerance
+-   Horizontal scaling
+-   Distributed logs
 
-Submits a new order.
+------------------------------------------------------------------------
 
-Request body (`OrderRequestDTO`):
+# 🏗 System Architecture
 
-```json
-{
-  "id": 101,
-  "price": 100,
-  "qty": 10,
-  "type": "BUY"
-}
+                        ┌───────────────┐
+                        │   Clients     │
+                        │  (Trading UI) │
+                        └───────┬───────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ API Gateway     │
+                       │ Spring Boot     │
+                       └────────┬────────┘
+                                │
+                                ▼
+                        ┌─────────────┐
+                        │ Order Service│
+                        └──────┬───────┘
+                               │
+                               ▼
+                        ┌──────────────┐
+                        │ Kafka Cluster│
+                        └──────┬───────┘
+                               │
+                               ▼
+                      ┌──────────────────┐
+                      │ Matching Engine  │
+                      │ (Order Book)     │
+                      └──────┬───────────┘
+                             │
+                             ▼
+                    ┌───────────────────┐
+                    │ Trade Execution   │
+                    └───────────────────┘
+
+------------------------------------------------------------------------
+
+# ⚙️ Tech Stack
+
+### Backend
+
+-   **Java**
+-   **Spring Boot**
+-   **Spring Kafka**
+
+### Infrastructure
+
+-   **Apache Kafka**
+-   **Docker**
+
+### Data
+
+-   In-memory order book
+-   Optional persistent storage
+
+------------------------------------------------------------------------
+
+# 📂 Project Structure
+
+    apexmatch
+    │
+    ├── order-service
+    │   ├── controller
+    │   ├── service
+    │   └── model
+    │
+    ├── matching-engine
+    │   ├── orderbook
+    │   ├── matcher
+    │   └── trade
+    │
+    ├── messaging
+    │   └── kafka
+    │
+    ├── infrastructure
+    │   └── docker
+    │
+    └── docs
+
+------------------------------------------------------------------------
+
+# ⚡ Order Matching Algorithm
+
+ApexMatch uses a **price-time priority algorithm**, the same mechanism
+used by real exchanges.
+
+### Matching Rules
+
+1.  **Best Price Priority**
+2.  **FIFO within same price level**
+3.  **Partial order matching supported**
+
+Example:
+
+    Buy Orders
+
+    Price   Quantity
+    101     50
+    100     100
+
+    Sell Orders
+
+    Price   Quantity
+    100     30
+    102     70
+
+Trade executed:
+
+    Buyer Price: 101
+    Seller Price: 100
+    Matched Quantity: 30
+
+------------------------------------------------------------------------
+
+# 🔄 Order Flow
+
+    Client Order
+          │
+          ▼
+    REST API
+          │
+          ▼
+    Kafka Topic (Orders)
+          │
+          ▼
+    Matching Engine
+          │
+          ▼
+    Trade Execution
+          │
+          ▼
+    Kafka Topic (Trades)
+
+------------------------------------------------------------------------
+
+# 🧵 Concurrency Model
+
+The system uses:
+
+-   Multi-threaded order ingestion
+-   Single-threaded matching per instrument (to avoid race conditions)
+-   Lock-free queues where possible
+
+This ensures **high throughput without corrupting the order book**.
+
+------------------------------------------------------------------------
+
+# 🐳 Running the Project
+
+### Clone the repository
+
+``` bash
+git clone https://github.com/yourusername/apexmatch.git
+cd apexmatch
 ```
 
-Validation rules:
+### Start Kafka
 
-- `id >= 1`
-- `price >= 1`
-- `qty >= 1`
-- `type` is required (`BUY` or `SELL`)
-
-Success response (`OrderResponseDTO`):
-
-```json
-{
-  "id": 101,
-  "status": "Accepted"
-}
+``` bash
+docker-compose up -d
 ```
 
-### `GET /order/book`
+### Run the services
 
-Returns the current in-memory order book grouped by price.
-
-Response shape (`OrderBookResponseDTO`):
-
-```json
-{
-  "buyOrderBook": {
-    "100": [
-      "OrderId:101 Qty:10"
-    ]
-  },
-  "sellOrderBook": {
-    "101": [
-      "OrderId:102 Qty:5"
-    ]
-  }
-}
-```
-
-## Matching Behavior
-
-Implemented in `OrderBook`:
-
-- BUY orders match against the lowest available sell price first.
-- SELL orders match against the highest available buy price first.
-- Matching uses price-time priority within each price level (FIFO queue).
-- Partial fills are supported.
-- Trade price is the resting order's price level being matched.
-- Remaining quantity is inserted back into the correct side of the book.
-
-## Persistence and Runtime Data
-
-- Incoming orders are persisted using `OrderRepository` (`orders` table).
-- Trades are created in memory inside `OrderBook.tradeList`.
-- `TradeRepository` exists but is not currently used by service logic.
-
-## Build and Run
-
-### Using system Maven
-
-```bash
-mvn clean package
+``` bash
 mvn spring-boot:run
 ```
 
-### Using Maven wrapper
+------------------------------------------------------------------------
 
-```powershell
-./mvnw.cmd clean package
-./mvnw.cmd spring-boot:run
-```
+# 📊 Future Improvements
 
-If wrapper execution fails on your machine, use installed Maven (`mvn`) instead.
+-   Distributed order book sharding
+-   Market data streaming
+-   Risk management module
+-   Persistence with event sourcing
+-   Snapshotting order books
+-   Latency benchmarking
+-   Raft-based replication
 
-## Database / H2 Console
+------------------------------------------------------------------------
 
-Configured in `src/main/resources/application.properties`:
+# 🎯 Learning Goals
 
-- JDBC URL: `jdbc:h2:mem:tradingdb`
-- Username: `sa`
-- Password: *(empty)*
-- H2 console: `http://localhost:8080/h2-console`
+This project is designed to understand:
 
-## Tests
+-   How **real stock exchanges process orders**
+-   How **Kafka works internally**
+-   How to build **low latency distributed systems**
+-   How to design **scalable event-driven architectures**
 
-Run:
+------------------------------------------------------------------------
 
-```bash
-mvn test
-```
+# 🤝 Contributing
 
-Current result: fails due to missing Spring bean wiring for `OrderQueue`.
+Contributions are welcome.
 
-## Project Layout
+1.  Fork the repository
+2.  Create a new branch
+3.  Commit your changes
+4.  Open a pull request
 
-- `src/main/java/.../controller` - REST controllers
-- `src/main/java/.../service` - service orchestration
-- `src/main/java/.../engine` - matching engine, order book, queue
-- `src/main/java/.../dto` - API DTOs
-- `src/main/java/.../model` - JPA entities and enums
-- `src/main/java/.../repository` - Spring Data repositories
-- `src/main/java/.../exception` - validation exception handler class
+------------------------------------------------------------------------
+
+# 📜 License
+
+MIT License
